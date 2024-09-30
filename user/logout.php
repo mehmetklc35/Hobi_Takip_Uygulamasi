@@ -1,13 +1,13 @@
 <?php
 session_start();
 
-// Tüm oturum değişkenlerini temizle
-$_SESSION = [];
+// Kullanıcı oturumunu sonlandır
+if (isset($_SESSION['user_id'])) {
+    session_unset();
+    session_destroy();
+}
 
-// Oturumun sonlandırılması
-session_destroy();
-
-// Kullanıcıyı giriş sayfasına yönlendir
-header('Location: login.php');
+// Ana sayfaya yönlendir
+header('location: home.php');
 exit();
 ?>

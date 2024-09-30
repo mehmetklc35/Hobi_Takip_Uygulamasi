@@ -1,10 +1,11 @@
 <?php
 session_start();
-include 'db_connection.php'; // Veritabanı bağlantısı
+include '../components/connection.php'; // Veritabanı bağlantısı
 
 // Kullanıcı kayıt işlemi
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['register'])) {
     $username = $_POST['username'];
+    $email = $_POST['email'];
     $password = $_POST['password'];
     $password_confirm = $_POST['password_confirm'];
 
@@ -14,22 +15,31 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['register'])) {
     } else {
         // Kullanıcı adı kontrolü
         $query = "SELECT * FROM Users WHERE username = ?";
-        $stmt = $db->prepare($query);
+        $stmt = $pdo->prepare($query);
         $stmt->execute([$username]);
 
         if ($stmt->rowCount() > 0) {
             $error = "Kullanıcı adı zaten alınmış.";
         } else {
-            // Kullanıcı kaydetme
-            $hashed_password = password_hash($password, PASSWORD_DEFAULT);
-            $insertQuery = "INSERT INTO Users (username, password) VALUES (?, ?)";
-            $insertStmt = $db->prepare($insertQuery);
-            $insertStmt->execute([$username, $hashed_password]);
+            // E-posta kontrolü
+            $emailQuery = "SELECT * FROM Users WHERE email = ?";
+            $emailStmt = $pdo->prepare($emailQuery);
+            $emailStmt->execute([$email]);
 
-            $_SESSION['user_id'] = $db->lastInsertId();
-            $_SESSION['username'] = $username;
-            header('Location: index.php'); // Ana sayfaya yönlendir
-            exit();
+            if ($emailStmt->rowCount() > 0) {
+                $error = "E-posta adresi zaten kayıtlı.";
+            } else {
+                // Kullanıcı kaydetme
+                $hashed_password = password_hash($password, PASSWORD_DEFAULT);
+                $insertQuery = "INSERT INTO Users (username, email, password) VALUES (?, ?, ?)";
+                $insertStmt = $pdo->prepare($insertQuery);
+                $insertStmt->execute([$username, $email, $hashed_password]);
+
+                $_SESSION['user_id'] = $pdo->lastInsertId();
+                $_SESSION['username'] = $username;
+                header('Location: login.php'); 
+                exit();
+            }
         }
     }
 }
@@ -57,6 +67,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['register'])) {
             <div class="form-group">
                 <label for="username">Kullanıcı Adı:</label>
                 <input type="text" class="form-control" name="username" required>
+            </div>
+            <div class="form-group">
+                <label for="email">E-posta:</label>
+                <input type="email" class="form-control" name="email" required>
             </div>
             <div class="form-group">
                 <label for="password">Şifre:</label>

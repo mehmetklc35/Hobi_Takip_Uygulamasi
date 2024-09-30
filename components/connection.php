@@ -18,5 +18,6 @@ try {
 } catch (PDOException $e) {
     // Hata oluşursa hata mesajını yakala ve göster
     echo "Bağlantı hatası: " . $e->getMessage();
+    exit();
 }
 ?>
