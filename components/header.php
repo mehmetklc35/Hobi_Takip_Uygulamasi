@@ -33,7 +33,7 @@
                         </li>                
                         <?php if (isset($_SESSION['user_id'])): ?>
                               <li class="nav-item">
-                                    <form method="POST" action="login.php" style="display: inline;">
+                                    <form method="POST" action="user/login.php" style="display: inline;">
                                           <button type="submit" class="btn btn-link nav-link">Çıkış Yap</button>
                                     </form>
                               </li>

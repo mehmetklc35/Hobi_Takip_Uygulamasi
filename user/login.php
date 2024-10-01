@@ -1,32 +1,31 @@
 <?php
 session_start();
-include '../components/connection.php'; // Veritabanı bağlantısı
+include '../components/connection.php';
+include '../components/function.php';
 
-// Giriş yapmış kullanıcı kontrolü
-if (isset($_SESSION['user_id'])) {
-    header('Location: home.php');
-    exit();
-}
+// Hata mesajını tanımla
+$error = "";
 
-// Giriş işlemi
-if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['login'])) {
-    $username = $_POST['username'];
-    $password = $_POST['password'];
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    // POST verilerini kontrol et
+    if (isset($_POST['email']) && isset($_POST['password']) && !empty($_POST['email']) && !empty($_POST['password'])) {
+        $email = $_POST['email'];
+        $password = $_POST['password'];
 
-    // Kullanıcıyı veritabanında kontrol et
-    $query = "SELECT * FROM Users WHERE username = ?";
-    $stmt = $pdo->prepare($query);
-    $stmt->execute([$username]);
-    $user = $stmt->fetch(PDO::FETCH_ASSOC);
-
-    // Kullanıcı varsa ve şifre doğruysa
-    if ($user && password_verify($password, $user['password'])) {
-        $_SESSION['user_id'] = $user['id'];
-        $_SESSION['username'] = $user['username'];
-        header('Location: home.php'); // Ana sayfaya yönlendir
-        exit();
+        $user = authenticatedUser($pdo, $email, $password);
+        
+        if ($user) {
+            $_SESSION['user_id'] = $user['id'];
+            $_SESSION['username'] = $user['username'];
+            $_SESSION['role'] = $user['role'];
+            
+            header('Location: ../index.php');
+            exit();
+        } else {
+            $error = "Geçersiz e-posta veya şifre.";
+        }
     } else {
-        $error = "Kullanıcı adı veya şifre hatalı.";
+        $error = "Lütfen tüm alanları doldurun.";
     }
 }
 ?>
@@ -41,27 +40,39 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['login'])) {
 </head>
 <body>
     <div class="container mt-5">
-        <h1>Giriş Yap</h1>
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <h2 class="text-center">Giriş Yap</h2>
 
-        <?php if (isset($error)): ?>
-            <div class="alert alert-danger" role="alert">
-                <?php echo htmlspecialchars($error); ?>
-            </div>
-        <?php endif; ?>
+                <!-- Hata mesajını göster -->
+                <?php if ($error): ?>
+                    <div class="alert alert-danger"><?php echo $error; ?></div>
+                <?php endif; ?>
 
-        <form method="POST" action="">
-            <div class="form-group">
-                <label for="username">Kullanıcı Adı:</label>
-                <input type="text" class="form-control" name="username" required>
-            </div>
-            <div class="form-group">
-                <label for="password">Şifre:</label>
-                <input type="password" class="form-control" name="password" required>
-            </div>
-            <button type="submit" name="login" class="btn btn-primary">Giriş Yap</button>
-        </form>
+                <!-- Giriş formu -->
+                <form action="login.php" method="POST">
+                    <div class="form-group">
+                        <label for="email">Email</label>
+                        <input type="email" class="form-control" name="email" required placeholder="Email" id="email">
+                    </div>
+                    <div class="form-group">
+                        <label for="password">Şifre</label>
+                        <input type="password" class="form-control" name="password" required placeholder="Şifre" id="password">
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-block">Giriş Yap</button>
+                </form>
 
-        <a href="register.php" class="btn btn-link mt-3">Hesap oluştur</a>
+                <!-- Kayıt ol bağlantısı -->
+                <div class="text-center mt-3">
+                    <p>Henüz bir hesabınız yok mu? <a href="register.php">Kayıt Ol</a></p>
+                </div>
+            </div>
+        </div>
     </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.0.7/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 </body>
 </html>
+

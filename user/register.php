@@ -1,33 +1,28 @@
 <?php
 session_start();
 require '../components/connection.php';
-include '../components/function.php';
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+if($_SERVER['REQUEST_METHOD']==='POST'){
     $username = $_POST['username'];
     $email = $_POST['email'];
     $password = $_POST['password'];
     $confirm_password = $_POST['confirm_password'];
 
-    // Şifre doğrulama
-    if ($password !== $confirm_password) {
+    if($password !== $confirm_password){
         $error = "Şifreler uyuşmuyor.";
-    } else {
-        // E-posta kontrolü
+    }else{
         $stmt = $pdo->prepare("SELECT id FROM users WHERE email = ?");
         $stmt->execute([$email]);
 
-        if ($stmt->fetch()) {
+        if($stmt->fetch()){
             $error = "Bu e-posta adresi zaten kayıtlı.";
-        } else {
-            // Kullanıcıyı kaydetme
+        }else{
             $hashed_password = password_hash($password, PASSWORD_BCRYPT);
-            $stmt = $pdo->prepare("INSERT INTO users (username, email, password) VALUES (?, ?, ?)");
-            $stmt->execute([$username, $email, $hashed_password]);
+            $stmt = $pdo->prepare("INSERT INTO users (username,email,password) VALUES(?,?,?)");
+            $stmt->execute([$username,$email,$hashed_password]);
 
-            // Kayıt başarılı mesajı ve yönlendirme
-            $_SESSION['success'] = "Kayıt başarılı! Giriş yapabilirsiniz.";
-            header('Location: login.php');
+            echo "Kayıt başarılı! Giriş Yapabilirsiniz.";
+            header('Refresh: 2; URL=login.php');
             exit();
         }
     }
@@ -35,51 +30,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 ?>
 
 <!DOCTYPE html>
-<html lang="tr">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <title>Kayıt Ol</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
 </head>
 <body>
     <div class="container mt-5">
-        <h1>Kayıt Ol</h1>
-
-        <?php if (isset($error)): ?>
-            <div class="alert alert-danger" role="alert">
-                <?php echo htmlspecialchars($error); ?>
-            </div>
+        <h2>Kayıt Ol</h2>
+        <?php if(isset($error)):?>
+            <div class="alert alert-danger"><?php echo $error ?></div>
         <?php endif; ?>
-
-        <?php if (isset($_SESSION['success'])): ?>
-            <div class="alert alert-success" role="alert">
-                <?php echo htmlspecialchars($_SESSION['success']); ?>
-                <?php unset($_SESSION['success']); // Başarılı mesajı gösterdikten sonra sil ?>
+        <form action="register.php" method="post">
+            <div class="form-group mb-3">
+                <label for="username" class="form-label">Kullanıcı Adı</label>
+                <input type="text" id="username" name="username" class="form-control" required>
             </div>
-        <?php endif; ?>
-
-        <form method="POST" action="">
-            <div class="form-group">
-                <label for="username">Kullanıcı Adı:</label>
-                <input type="text" class="form-control" name="username" required>
+            <div class="form-group mb-3">
+                <label for="email" class="form-label">E-Posta</label>
+                <input type="text" id="email" name="email" class="form-control" required>
             </div>
-            <div class="form-group">
-                <label for="email">E-posta:</label>
-                <input type="email" class="form-control" name="email" required>
+            <div class="form-group mb-3">
+                <label for="password" class="form-label">Şifre</label>
+                <input type="password" id="password" name="password" class="form-control" required>
             </div>
-            <div class="form-group">
-                <label for="password">Şifre:</label>
-                <input type="password" class="form-control" name="password" required>
+            <div class="form-group mb-3">
+                <label for="confirm_password" class="form-label">Şifre Onayla</label>
+                <input type="password" id="confirm_password" name="confirm_password" class="form-control" required>
             </div>
-            <div class="form-group">
-                <label for="confirm_password">Şifreyi Onayla:</label>
-                <input type="password" class="form-control" name="confirm_password" required>
-            </div>
-            <button type="submit" name="register" class="btn btn-primary">Kayıt Ol</button>
+            <button class="btn btn-primary" type="submit">Kayıt Ol</button>
+            <p class="mt-3">Zaten hesabınız var mı? <a href="login.php">Giriş Yapın</a></p>
         </form>
-
-        <a href="login.php" class="btn btn-link mt-3">Zaten bir hesabınız var mı? Giriş yapın</a>
     </div>
 </body>
 </html>
