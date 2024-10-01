@@ -1,45 +1,34 @@
 <?php
 session_start();
-include '../components/connection.php'; // Veritabanı bağlantısı
+require '../components/connection.php';
+include '../components/function.php';
 
-// Kullanıcı kayıt işlemi
-if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['register'])) {
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username = $_POST['username'];
     $email = $_POST['email'];
     $password = $_POST['password'];
-    $password_confirm = $_POST['password_confirm'];
+    $confirm_password = $_POST['confirm_password'];
 
     // Şifre doğrulama
-    if ($password !== $password_confirm) {
-        $error = "Şifreler eşleşmiyor.";
+    if ($password !== $confirm_password) {
+        $error = "Şifreler uyuşmuyor.";
     } else {
-        // Kullanıcı adı kontrolü
-        $query = "SELECT * FROM Users WHERE username = ?";
-        $stmt = $pdo->prepare($query);
-        $stmt->execute([$username]);
+        // E-posta kontrolü
+        $stmt = $pdo->prepare("SELECT id FROM users WHERE email = ?");
+        $stmt->execute([$email]);
 
-        if ($stmt->rowCount() > 0) {
-            $error = "Kullanıcı adı zaten alınmış.";
+        if ($stmt->fetch()) {
+            $error = "Bu e-posta adresi zaten kayıtlı.";
         } else {
-            // E-posta kontrolü
-            $emailQuery = "SELECT * FROM Users WHERE email = ?";
-            $emailStmt = $pdo->prepare($emailQuery);
-            $emailStmt->execute([$email]);
+            // Kullanıcıyı kaydetme
+            $hashed_password = password_hash($password, PASSWORD_BCRYPT);
+            $stmt = $pdo->prepare("INSERT INTO users (username, email, password) VALUES (?, ?, ?)");
+            $stmt->execute([$username, $email, $hashed_password]);
 
-            if ($emailStmt->rowCount() > 0) {
-                $error = "E-posta adresi zaten kayıtlı.";
-            } else {
-                // Kullanıcı kaydetme
-                $hashed_password = password_hash($password, PASSWORD_DEFAULT);
-                $insertQuery = "INSERT INTO Users (username, email, password) VALUES (?, ?, ?)";
-                $insertStmt = $pdo->prepare($insertQuery);
-                $insertStmt->execute([$username, $email, $hashed_password]);
-
-                $_SESSION['user_id'] = $pdo->lastInsertId();
-                $_SESSION['username'] = $username;
-                header('Location: login.php'); 
-                exit();
-            }
+            // Kayıt başarılı mesajı ve yönlendirme
+            $_SESSION['success'] = "Kayıt başarılı! Giriş yapabilirsiniz.";
+            header('Location: login.php');
+            exit();
         }
     }
 }
@@ -63,6 +52,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['register'])) {
             </div>
         <?php endif; ?>
 
+        <?php if (isset($_SESSION['success'])): ?>
+            <div class="alert alert-success" role="alert">
+                <?php echo htmlspecialchars($_SESSION['success']); ?>
+                <?php unset($_SESSION['success']); // Başarılı mesajı gösterdikten sonra sil ?>
+            </div>
+        <?php endif; ?>
+
         <form method="POST" action="">
             <div class="form-group">
                 <label for="username">Kullanıcı Adı:</label>
@@ -77,17 +73,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['register'])) {
                 <input type="password" class="form-control" name="password" required>
             </div>
             <div class="form-group">
-                <label for="password_confirm">Şifreyi Onayla:</label>
-                <input type="password" class="form-control" name="password_confirm" required>
+                <label for="confirm_password">Şifreyi Onayla:</label>
+                <input type="password" class="form-control" name="confirm_password" required>
             </div>
             <button type="submit" name="register" class="btn btn-primary">Kayıt Ol</button>
         </form>
 
         <a href="login.php" class="btn btn-link mt-3">Zaten bir hesabınız var mı? Giriş yapın</a>
     </div>
-
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 </body>
 </html>

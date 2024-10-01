@@ -1,7 +1,6 @@
 <?php
 session_start();
 include '../components/connection.php'; // Veritabanı bağlantısı
-include '../components/function.php'; // Diğer işlevler
 
 // Giriş yapmış kullanıcı kontrolü
 if (isset($_SESSION['user_id'])) {
@@ -64,9 +63,5 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['login'])) {
 
         <a href="register.php" class="btn btn-link mt-3">Hesap oluştur</a>
     </div>
-
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 </body>
 </html>

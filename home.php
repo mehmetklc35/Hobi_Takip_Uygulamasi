@@ -50,14 +50,7 @@ if (empty($_SESSION['csrf_token'])) {
 <body>
     <?php include 'components/header.php'; ?> <!-- Header dosyasını dahil ettik -->
 
-    <div class="container mt-5">
-        <h1>Hobi Takip Uygulaması</h1>
-        <?php if (isset($_SESSION['username'])): ?>
-            <h2>Hoş geldiniz, <?php echo htmlspecialchars($_SESSION['username']); ?>!</h2>
-        <?php else: ?>
-            <h2>Hoş geldiniz!</h2>
-            <p><a href="user/login.php">Giriş yapın</a> veya yeni bir hesap oluşturun.</p>
-        <?php endif; ?>
+    <div class="container mt-5">   
 
         <h3>Hobilerim</h3>
         <ul class="list-group mb-4">
