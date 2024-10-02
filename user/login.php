@@ -19,7 +19,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_SESSION['username'] = $user['username'];
             $_SESSION['role'] = $user['role'];
             
-            header('Location: ../index.php');
+            header('Location: ../home.php');
             exit();
         } else {
             $error = "Geçersiz e-posta veya şifre.";
